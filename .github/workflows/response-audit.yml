@@ -1,0 +1,59 @@
+name: WhatsApp response audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "discover = check the connection first · report = run the review"
+        required: true
+        type: choice
+        default: discover
+        options: [discover, report]
+      agent:
+        description: "Case manager, exactly as named in Chatwoot"
+        required: true
+        default: "Warda Badar"
+        type: string
+      days_back:
+        description: "How many days to review"
+        required: true
+        default: "60"
+        type: string
+      send_email:
+        description: "Email the sheet when the report finishes?"
+        required: true
+        type: choice
+        default: "false"
+        options: ["false", "true"]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install --no-audit --no-fund
+      - name: Check the rules still work
+        run: node selftest.js
+      - run: node audit.js
+        env:
+          CHATWOOT_TOKEN: ${{ secrets.CHATWOOT_TOKEN }}
+          CHATWOOT_URL: ${{ secrets.CHATWOOT_URL }}
+          CHATWOOT_ACCOUNT_ID: ${{ secrets.CHATWOOT_ACCOUNT_ID }}
+          GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
+          HUBSPOT_TOKEN: ${{ secrets.HUBSPOT_TOKEN }}
+          RESEND_KEY: ${{ secrets.RESEND_KEY }}
+          MODE: ${{ inputs.mode }}
+          AGENT: ${{ inputs.agent }}
+          DAYS_BACK: ${{ inputs.days_back }}
+          SEND_EMAIL: ${{ inputs.send_email }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: response-review
+          path: out/
+          retention-days: 14
+          if-no-files-found: ignore
