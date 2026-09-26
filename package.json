@@ -1,0 +1,10 @@
+{
+  "name": "hof-chatwoot-response-audit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Reviews how quickly a case manager answered clients on WhatsApp (Chatwoot).",
+  "type": "commonjs",
+  "engines": { "node": ">=18" },
+  "dependencies": { "exceljs": "^4.4.0" },
+  "scripts": { "start": "node audit.js", "test": "node selftest.js" }
+}
